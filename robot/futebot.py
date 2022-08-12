@@ -1,7 +1,7 @@
 import os
 
 import telebot
-from crawler.brasileiro_a import last_results
+from crawler.Brazil_Championships.brasileiro_a import last_results
 from dotenv import find_dotenv, load_dotenv
 
 dot_env = find_dotenv()

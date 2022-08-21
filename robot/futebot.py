@@ -1,11 +1,9 @@
 import os
 
 import telebot
-from crawler.Brazil_Championships.brasileiro_a import (
-    last_results,
-    table,
-    team_overview,
-)
+from crawler.Brazil_Championships.brasileiro_a import (last_results, table,
+                                                       team_overview,
+                                                       team_statistics)
 from dotenv import find_dotenv, load_dotenv
 
 dot_env = find_dotenv()
@@ -60,36 +58,108 @@ def ask_team_name(message):
 
 
 def show_club_overview(message):
-    """Show the team overview that the user request."""
+    """Show the team overview that the user request and ask if the user
+    want to see more information."""
     CHAT_ID = message.chat.id
     TEAM_NAME = message.text
     try:
         TEAM_OVERVIEW = team_overview(TEAM_NAME)
-        MANAGER = TEAM_OVERVIEW['manager']
-        TEAM_FULLNAME = TEAM_OVERVIEW['team_fullname']
-        STADIUM = TEAM_OVERVIEW['stadium']
-        CITY = TEAM_OVERVIEW['city']
-        GOALS_SCORED = TEAM_OVERVIEW['goalsScored']
-        GOALS_CONCEDED = TEAM_OVERVIEW['goalsConceded']
-        YELLOW_CARD = TEAM_OVERVIEW['yellowCards']
-        RED_CARDS = TEAM_OVERVIEW['redCards']
+        TEAM_IMAGE = TEAM_OVERVIEW['teamImage']
         team_info = f"""\
-        ⛓️ Nome: {TEAM_FULLNAME}
-        🎯 Técnico: {MANAGER}
-        🏟️ Estádio: {STADIUM}
-        📍 Cidade: {CITY}
-        ⚽ Gols Marcados: {GOALS_SCORED}
-        😡 Gols Sofridos: {GOALS_CONCEDED}
-        🟨 Cartões Amarelos: {YELLOW_CARD}
-        🟥 Cartões Vermelhos: {RED_CARDS}
+⚽ Nome: {TEAM_OVERVIEW['team_fullname']}
+🎯 Técnico: {TEAM_OVERVIEW['manager']}
+🏟️ Estádio: {TEAM_OVERVIEW['stadium']}
+📍 Cidade: {TEAM_OVERVIEW['city']}
+⚽ Gols Marcados: {TEAM_OVERVIEW['goalsScored']}
+😡 Gols Sofridos: {TEAM_OVERVIEW['goalsConceded']}
+🟨 Cartões Amarelos: {TEAM_OVERVIEW['yellowCards']}
+🟥 Cartões Vermelhos: {TEAM_OVERVIEW['redCards']}
         """
-        bot.send_message(CHAT_ID, team_info)
+        button1 = telebot.types.InlineKeyboardButton(
+            text='ver estatisticas', callback_data=f'{TEAM_NAME}'
+        )
+        button2 = telebot.types.InlineKeyboardButton(
+            text='sair', callback_data='sair'
+        )
+        keyboard_inline = telebot.types.InlineKeyboardMarkup().add(
+            button1, button2
+        )
+        bot.send_sticker(CHAT_ID, TEAM_IMAGE)
+        bot.send_message(CHAT_ID, team_info, reply_markup=keyboard_inline)
     except:
         error_message = """
     ❌ Erro ao trazer informações do time, certifique-se que você digitou\
  corretamente e sem acento. ❌
         """
         bot.send_message(CHAT_ID, error_message)
+
+
+@bot.callback_query_handler(func=lambda call: True)
+def show_statistics_or_exit(call):
+    """Show user the team statistics if he wants to."""
+    user_answer = call.data
+    if user_answer != 'sair':
+        reply_message = 'Carregando estatisticas'
+        bot.answer_callback_query(
+            callback_query_id=call.id, text=reply_message
+        )
+        bot.edit_message_reply_markup(
+            call.message.chat.id, call.message.message_id
+        )
+        statistics = team_statistics(user_answer)
+        statistics_string = f"""
+Numero de partidas jogadas: {statistics['matches']}
+Gols Marcados: {statistics['goalsScored']}
+Gols Sofridos: {statistics['goalsConceded']}
+Chutes: {statistics['shots']}
+Gols de Penalti: {statistics['penaltyGoals']}
+Gols de Falta: {statistics['freeKickGoals']}
+Chutes de Falta: {statistics['freeKickShots']}
+Gols dentro da área: {statistics['goalsFromInsideTheBox']}
+Gols de fora da área: {statistics['goalsFromOutsideTheBox']}
+Chutes dentro da área: {statistics['shotsFromInsideTheBox']}
+Chutes de fora da área: {statistics['shotsFromOutsideTheBox']}
+Gols de cabeça: {statistics['headedGoals']}
+Gols com a perna esquerda: {statistics['leftFootGoals']}
+Gols com a perna direita: {statistics['rightFootGoals']}
+Grandes chances criadas: {statistics['bigChancesCreated']}
+Grandes chances perdidas: {statistics['bigChancesMissed']}
+Chutes no gol: {statistics['shotsOnTarget']}
+Chutes fora do gol: {statistics['shotsOffTarget']}
+Chutes na trave: {statistics['hitWoodwork']}
+Dribles bem sucedidos: {statistics['successfulDribbles']}
+Tentativas de dribles: {statistics['dribbleAttempts']}
+Escanteios: {statistics['corners']}
+Média de posse de bola: {statistics['averageBallPossession']:.2f}%
+Total de passes: {statistics['totalPasses']}
+Passes precisos: {statistics['accuratePasses']}
+passes precisos: {statistics['accuratePassesPercentage']:.2f}%
+Total de bolas longas: {statistics['totalLongBalls']}
+Bolas longas precisas: {statistics['accurateLongBalls']}
+Bolas longas precisas: {statistics['accurateLongBallsPercentage']:.2f}%
+Total de cruzamentos: {statistics['totalCrosses']}
+Cruzamentos precisos: {statistics['accurateCrosses']}
+cruzamentos precisos: {statistics['accurateCrossesPercentage']:.2f}%
+Jogos sem sofrer gols: {statistics['cleanSheets']}
+Total de desarmes: {statistics['tackles']}
+Intercepções: {statistics['interceptions']}
+Total de duelos: {statistics['totalDuels']}
+Total de duelos ganhos: {statistics['duelsWon']}
+Total de duelos áereos: {statistics['totalAerialDuels']}
+Faltas: {statistics['fouls']}
+Cartões amarelos: {statistics['yellowCards']}
+Cartões vermelhos: {statistics['redCards']}
+"""
+        bot.send_message(call.message.chat.id, text=statistics_string)
+    else:
+        reply_message = 'ok, saindo...'
+        bot.answer_callback_query(
+            callback_query_id=call.id, text=reply_message
+        )
+        bot.edit_message_reply_markup(
+            call.message.chat.id, call.message.message_id
+        )
+        return
 
 
 @bot.message_handler(commands=['help', 'ajuda'])
@@ -100,7 +170,7 @@ def help_command(message):
 Lista de comandos disponiveis: \n
 /ultimos_resultados_BRA : ultimos resultados do brasileirão A.
 /tabela_BRA : tabela do brasileirão A.
-/resumo_time_BRA : Overview de qualquer clube do brasileirão
+/resumo_time_BRA : Overview e estatisticas de qualquer clube do brasileirão
     """
     bot.send_message(CHAT_ID, string)
 

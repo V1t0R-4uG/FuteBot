@@ -32,7 +32,8 @@ def request_and_parse_to_object(url, protocol='GET'):
 
 def table():
     """Scrape the current table"""
-    url = 'https://api.sofascore.com/api/v1/unique-tournament/325/season/40557/standings/total'
+    url = 'https://api.sofascore.com/api/v1/unique-tournament/325/season\
+/40557/standings/total'
     try:
         json_api_sofa = request_and_parse_to_object(url=url, protocol='GET')
         table = json_api_sofa['standings'][0]['rows']
@@ -57,7 +58,8 @@ def table():
 def get_team_id(team_name):
     """get the ID from a specific team"""
     lower_case_string = team_name.lower().replace(' ', '-')
-    url = 'https://api.sofascore.com/api/v1/unique-tournament/325/season/40557/standings/total'
+    url = 'https://api.sofascore.com/api/v1/unique-tournament/325/season/\
+40557/standings/total'
     try:
         json_api_sofa = request_and_parse_to_object(url=url, protocol='GET')
         team_list = json_api_sofa['standings'][0]['rows']
@@ -89,6 +91,7 @@ def team_overview(team_name):
     TEAM_ID = get_team_id(team_name=team_name)
     TEAM_STATS = team_statistics(team_name)
     url = f'https://api.sofascore.com/api/v1/team/{TEAM_ID}'
+    team_image = f'https://api.sofascore.app/api/v1/team/{TEAM_ID}/image'
     try:
         json_api_sofa = request_and_parse_to_object(url=url, protocol='GET')
         team_object = json_api_sofa['team']
@@ -101,6 +104,7 @@ def team_overview(team_name):
             'goalsConceded': TEAM_STATS['goalsConceded'],
             'yellowCards': TEAM_STATS['yellowCards'],
             'redCards': TEAM_STATS['redCards'],
+            'teamImage': team_image,
         }
         return TEAM_OVERVIEW
     except:
@@ -108,4 +112,4 @@ def team_overview(team_name):
 
 
 if __name__ == '__main__':
-    print(team_statistics('atletico goianiense'))
+    pass

@@ -1,9 +1,7 @@
 import os
 
 import telebot
-from crawler.Brazil_Championships.brasileiro_a import (last_results, table,
-                                                       team_overview,
-                                                       team_statistics)
+from crawler.Brazil_Championships import brasileiro_a
 from dotenv import find_dotenv, load_dotenv
 
 dot_env = find_dotenv()
@@ -17,7 +15,7 @@ bot = telebot.TeleBot(str(BOT_TOKEN))
 def show_last_matches_results_BRA(message):
     """Shows the last matches results of brasileirão divison A."""
     CHAT_ID = message.chat.id
-    array_matches_results = last_results()
+    array_matches_results = brasileiro_a.last_results()
     string_matches_results = ''
     for results in array_matches_results:
         string_matches_results += results
@@ -28,11 +26,8 @@ def show_last_matches_results_BRA(message):
 def show_table_BRA(message):
     """show table of brasileirão divison A"""
     CHAT_ID = message.chat.id
-    table_array = table()
-    string_table = """\n Pontos: 🅿️ 
-    Vitórias:   🟢
-    Derrotas:  🔴
-    Empates:  ❌ \n"""
+    table_array = brasileiro_a.table()
+    string_table = """"""
     for team in table_array:
         name = team['team_name']
         position = team['team_position']
@@ -41,8 +36,8 @@ def show_table_BRA(message):
         draws = team['team_draws']
         points = team['team_points']
         to_append = (
-            f'\n{position}° {name} \n 🅿️ {points} '
-            f' 🟢{wins}  ❌{draws}  🔴{loss} \n'
+            f'\n{position}° {name} \n P: {points} '
+            f' V: {wins}  E: {draws}  D: {loss} \n'
         )
         string_table += to_append
     bot.send_message(CHAT_ID, string_table)
@@ -63,7 +58,7 @@ def show_club_overview(message):
     CHAT_ID = message.chat.id
     TEAM_NAME = message.text
     try:
-        TEAM_OVERVIEW = team_overview(TEAM_NAME)
+        TEAM_OVERVIEW = brasileiro_a.team_overview(TEAM_NAME)
         TEAM_IMAGE = TEAM_OVERVIEW['teamImage']
         team_info = f"""\
 ⚽ Nome: {TEAM_OVERVIEW['team_fullname']}
@@ -106,7 +101,7 @@ def show_statistics_or_exit(call):
         bot.edit_message_reply_markup(
             call.message.chat.id, call.message.message_id
         )
-        statistics = team_statistics(user_answer)
+        statistics = brasileiro_a.team_statistics(user_answer)
         statistics_string = f"""
 Numero de partidas jogadas: {statistics['matches']}
 Gols Marcados: {statistics['goalsScored']}

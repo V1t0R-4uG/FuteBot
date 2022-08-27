@@ -1,11 +1,12 @@
 import json
+from typing import Dict, List, Union
 from unicodedata import normalize
 
 import requests
 from bs4 import BeautifulSoup
 
 
-def last_results():
+def last_results() -> Union[List, bool]:
     """Scrape the last matches results and return it in an array."""
     URL = 'https://www.soccerstats.com/latest.asp?league=brazil'
     try:
@@ -23,15 +24,15 @@ def last_results():
         return False
 
 
-def request_and_parse_to_object(url, protocol='GET'):
+def request_and_parse_to_object(url: str, protocol: str = 'GET') -> Dict:
     """Request the url endpoint and return the json parsed to python object."""
     response = requests.request(protocol, url)
     response_to_object = json.loads(response.text)
     return response_to_object
 
 
-def table():
-    """Scrape the current table"""
+def table() -> Union[List, bool]:
+    """Return the current table."""
     url = 'https://api.sofascore.com/api/v1/unique-tournament/325/season\
 /40557/standings/total'
     try:
@@ -55,7 +56,7 @@ def table():
         return False
 
 
-def get_team_id(team_name):
+def get_team_id(team_name: str) -> Union[str, bool]:
     """get the ID from a specific team"""
     lower_case_string = team_name.lower().replace(' ', '-')
     url = 'https://api.sofascore.com/api/v1/unique-tournament/325/season/\
@@ -73,7 +74,7 @@ def get_team_id(team_name):
         return False
 
 
-def team_statistics(team_name):
+def team_statistics(team_name: str) -> Union[Dict, bool]:
     """Return Team Statistics."""
     TEAM_ID = get_team_id(team_name=team_name)
     url = f'http://api.sofascore.com/api/v1/team/{TEAM_ID}/unique-tournament\
@@ -86,10 +87,10 @@ def team_statistics(team_name):
         return False
 
 
-def team_overview(team_name):
+def team_overview(team_name: str) -> Union[Dict, bool]:
     """Get the overview about an specific club."""
-    TEAM_ID = get_team_id(team_name=team_name)
-    TEAM_STATS = team_statistics(team_name)
+    TEAM_ID: Union[str, bool] = get_team_id(team_name=team_name)
+    TEAM_STATS: Union[Dict, bool] = team_statistics(team_name)
     url = f'https://api.sofascore.com/api/v1/team/{TEAM_ID}'
     team_image = f'https://api.sofascore.app/api/v1/team/{TEAM_ID}/image'
     try:
@@ -109,7 +110,3 @@ def team_overview(team_name):
         return TEAM_OVERVIEW
     except:
         return False
-
-
-if __name__ == '__main__':
-    pass

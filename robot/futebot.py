@@ -165,6 +165,7 @@ def ask_user_the_round_number(message):
     round_number = bot.send_message(CHAT_ID, message)
     bot.register_next_step_handler(round_number, show_matches_by_round_number)
 
+
 def show_matches_by_round_number(message):
     CHAT_ID = message.chat.id
     passed_round_number = message.text
@@ -175,18 +176,18 @@ def show_matches_by_round_number(message):
         away_team = match['away_team']
         home_score = match['home_score']
         away_score = match['away_score']
-        match_status = match['match_status']
         if home_score == {}:
             append_partial = f"""\n{home_team} X {away_team}\n"""
             string_matches_formated += append_partial
-            continue
         elif not home_score.__contains__('normaltime'):
             full_append = f"""\n🔁 Em andamento: {home_team} {home_score['display']} X {away_score['display']} {away_team}\n"""
             string_matches_formated += full_append
         else:
             full_append = f"""\n{home_team} {home_score['display']} X {away_score['display']} {away_team}\n"""
             string_matches_formated += full_append
-    bot.send_message(CHAT_ID, f'Carregando confrontos da rodada {passed_round_number}...')
+    bot.send_message(
+        CHAT_ID, f'Carregando confrontos da rodada {passed_round_number}...'
+    )
     sleep(1)
     bot.send_message(CHAT_ID, string_matches_formated)
 

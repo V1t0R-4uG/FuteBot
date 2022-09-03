@@ -1,4 +1,5 @@
 import os
+from time import sleep
 
 import telebot
 from crawler.Brazil_Championships import brasileiro_a
@@ -157,6 +158,39 @@ Cartões vermelhos: {statistics['redCards']}
         return
 
 
+@bot.message_handler(commands=['confrontos_por_rodada_BRA'])
+def ask_user_the_round_number(message):
+    CHAT_ID = message.chat.id
+    message = """🤖 Digite o número da rodada que você deseja ver."""
+    round_number = bot.send_message(CHAT_ID, message)
+    bot.register_next_step_handler(round_number, show_matches_by_round_number)
+
+def show_matches_by_round_number(message):
+    CHAT_ID = message.chat.id
+    passed_round_number = message.text
+    matches = brasileiro_a.show_matches_by_round_number(passed_round_number)
+    string_matches_formated = """"""
+    for match in matches:
+        home_team = match['home_team']
+        away_team = match['away_team']
+        home_score = match['home_score']
+        away_score = match['away_score']
+        match_status = match['match_status']
+        if home_score == {}:
+            append_partial = f"""\n{home_team} X {away_team}\n"""
+            string_matches_formated += append_partial
+            continue
+        elif not home_score.__contains__('normaltime'):
+            full_append = f"""\n🔁 Em andamento: {home_team} {home_score['display']} X {away_score['display']} {away_team}\n"""
+            string_matches_formated += full_append
+        else:
+            full_append = f"""\n{home_team} {home_score['display']} X {away_score['display']} {away_team}\n"""
+            string_matches_formated += full_append
+    bot.send_message(CHAT_ID, f'Carregando confrontos da rodada {passed_round_number}...')
+    sleep(1)
+    bot.send_message(CHAT_ID, string_matches_formated)
+
+
 @bot.message_handler(commands=['help', 'ajuda'])
 def help_command(message):
     """Send the bot User Guide to the user."""
@@ -166,6 +200,7 @@ Lista de comandos disponiveis: \n
 /ultimos_resultados_BRA : ultimos resultados do brasileirão A.
 /tabela_BRA : tabela do brasileirão A.
 /resumo_time_BRA : Overview e estatisticas de qualquer clube do brasileirão
+/confrontos_por_rodada_BRA : Confrontos que aconteceram ou irão acontecer
     """
     bot.send_message(CHAT_ID, string)
 
@@ -179,6 +214,7 @@ def start_message(message):
     keyboard.row('/ultimos_resultados_BRA')
     keyboard.row('/tabela_BRA')
     keyboard.row('/resumo_time_BRA')
+    keyboard.row('/confrontos_por_rodada_BRA')
     user_guide_message = """
     Bem vindo ao Fute Bot ⚽️ ! \n
 Escreva ou aperte um dos botões que aparecem no seu teclado. \

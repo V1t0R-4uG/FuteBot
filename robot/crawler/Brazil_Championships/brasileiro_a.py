@@ -114,8 +114,8 @@ def team_overview(team_name: str) -> Union[Dict, bool]:
 
 def show_matches_by_round_number(round_number: int):
     """Show matches by round number."""
-    url = f"https://api.sofascore.com/api/v1/unique-tournament/325/season/\
-40557/events/round/{round_number}"
+    url = f'https://api.sofascore.com/api/v1/unique-tournament/325/season/\
+40557/events/round/{round_number}'
     json_api_sofa = request_and_parse_to_object(url, 'GET')
     matches_array = json_api_sofa['events']
     filtered_matches_array = []
@@ -125,7 +125,7 @@ def show_matches_by_round_number(round_number: int):
             'away_team': matches['awayTeam']['shortName'],
             'home_score': matches['homeScore'],
             'away_score': matches['awayScore'],
-            'match_status': matches['status']['code']
+            'match_status': matches['status']['code'],
         }
         filtered_matches_array.append(match_stats)
     return filtered_matches_array
@@ -134,5 +134,6 @@ def show_matches_by_round_number(round_number: int):
 def main():
     print(show_matches_by_round_number(38))
 
-if __name__ == "__main__":
+
+if __name__ == '__main__':
     main()

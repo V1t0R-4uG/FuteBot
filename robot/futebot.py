@@ -1,5 +1,6 @@
 import os
 from time import sleep
+import datetime
 
 import telebot
 from crawler.Brazil_Championships import brasileiro_a
@@ -169,27 +170,46 @@ def ask_user_the_round_number(message):
 def show_matches_by_round_number(message):
     CHAT_ID = message.chat.id
     passed_round_number = message.text
+    round_number_is_less_than_limit = int(passed_round_number) < 39
+    roud_number_is_actualy_number = passed_round_number.isnumeric()
+    a_round = round_number_is_less_than_limit and roud_number_is_actualy_number
+    if not a_round:
+        bot.send_message(CHAT_ID, '❌ Erro, digite um número válido ❌')
+        return
     matches = brasileiro_a.show_matches_by_round_number(passed_round_number)
-    string_matches_formated = """"""
+    string_of_matches_pretify = """"""
     for match in matches:
         home_team = match['home_team']
         away_team = match['away_team']
         home_score = match['home_score']
         away_score = match['away_score']
-        if home_score == {}:
-            append_partial = f"""\n{home_team} X {away_team}\n"""
-            string_matches_formated += append_partial
-        elif not home_score.__contains__('normaltime'):
-            full_append = f"""\n🔁 Em andamento: {home_team} {home_score['display']} X {away_score['display']} {away_team}\n"""
-            string_matches_formated += full_append
+        time_stamp = match['time_stamp']
+
+        the_match_will_happen = home_score ==  {}
+        the_match_is_happening_now = 'normaltime' not in home_score
+
+        if the_match_will_happen:
+            append_future_match = f"""\n🔸A Jogar:\n{home_team} X {away_team}\
+ - \n🗓️ {time_stamp}\n"""
+            string_of_matches_pretify += append_future_match
+
+        elif the_match_is_happening_now:
+            match_happening_now = f"""\n🔁 Em andamento:
+{home_team} \
+{home_score['display']} X {away_score['display']} {away_team} \n"""
+            string_of_matches_pretify += match_happening_now
+
         else:
-            full_append = f"""\n{home_team} {home_score['display']} X {away_score['display']} {away_team}\n"""
-            string_matches_formated += full_append
+            ended_match = f"""\n🔹Encerrado:
+{home_team} {home_score['display']} X \
+{away_score['display']} {away_team} - \n🗓️ {time_stamp}\n"""
+            string_of_matches_pretify += ended_match
+
     bot.send_message(
         CHAT_ID, f'Carregando confrontos da rodada {passed_round_number}...'
     )
     sleep(1)
-    bot.send_message(CHAT_ID, string_matches_formated)
+    bot.send_message(CHAT_ID, string_of_matches_pretify)
 
 
 @bot.message_handler(commands=['help', 'ajuda'])

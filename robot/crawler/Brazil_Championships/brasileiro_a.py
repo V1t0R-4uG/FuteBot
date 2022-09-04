@@ -1,6 +1,7 @@
 import json
 from typing import Dict, List, Union
 from unicodedata import normalize
+from datetime import datetime
 
 import requests
 from bs4 import BeautifulSoup
@@ -112,7 +113,7 @@ def team_overview(team_name: str) -> Union[Dict, bool]:
         return False
 
 
-def show_matches_by_round_number(round_number: int):
+def show_matches_by_round_number(round_number: int) -> List[Dict]:
     """Show matches by round number."""
     url = f'https://api.sofascore.com/api/v1/unique-tournament/325/season/\
 40557/events/round/{round_number}'
@@ -126,12 +127,13 @@ def show_matches_by_round_number(round_number: int):
             'home_score': matches['homeScore'],
             'away_score': matches['awayScore'],
             'match_status': matches['status']['code'],
+            'time_stamp': datetime.fromtimestamp(matches['startTimestamp'])
         }
         filtered_matches_array.append(match_stats)
     return filtered_matches_array
 
 
-def main():
+def main() -> None:
     print(show_matches_by_round_number(38))
 
 

@@ -1,6 +1,6 @@
+import datetime
 import os
 from time import sleep
-import datetime
 
 import telebot
 from crawler.Brazil_Championships import brasileiro_a
@@ -62,16 +62,16 @@ def show_club_overview(message):
     try:
         TEAM_OVERVIEW = brasileiro_a.team_overview(TEAM_NAME)
         TEAM_IMAGE = TEAM_OVERVIEW['teamImage']
-        team_info = f"""\
-⚽ Nome: {TEAM_OVERVIEW['team_fullname']}
-🎯 Técnico: {TEAM_OVERVIEW['manager']}
-🏟️ Estádio: {TEAM_OVERVIEW['stadium']}
-📍 Cidade: {TEAM_OVERVIEW['city']}
-⚽ Gols Marcados: {TEAM_OVERVIEW['goalsScored']}
-😡 Gols Sofridos: {TEAM_OVERVIEW['goalsConceded']}
-🟨 Cartões Amarelos: {TEAM_OVERVIEW['yellowCards']}
-🟥 Cartões Vermelhos: {TEAM_OVERVIEW['redCards']}
-        """
+        team_info = (
+            f"⚽ Nome: {TEAM_OVERVIEW['team_fullname']}\n"
+            f"🎯 Técnico: {TEAM_OVERVIEW['manager']}\n"
+            f"🏟️ Estádio: {TEAM_OVERVIEW['stadium']}\n"
+            f"📍 Cidade: {TEAM_OVERVIEW['city']}\n"
+            f"⚽ Gols Marcados: {TEAM_OVERVIEW['goalsScored']}\n"
+            f"😡 Gols Sofridos: {TEAM_OVERVIEW['goalsConceded']}\n"
+            f"🟨 Cartões Amarelos: {TEAM_OVERVIEW['yellowCards']}\n"
+            f"🟥 Cartões Vermelhos: {TEAM_OVERVIEW['redCards']}\n"
+        )
         button1 = telebot.types.InlineKeyboardButton(
             text='ver estatisticas', callback_data=f'{TEAM_NAME}'
         )
@@ -84,10 +84,10 @@ def show_club_overview(message):
         bot.send_sticker(CHAT_ID, TEAM_IMAGE)
         bot.send_message(CHAT_ID, team_info, reply_markup=keyboard_inline)
     except:
-        error_message = """
-    ❌ Erro ao trazer informações do time, certifique-se que você digitou\
- corretamente e sem acento. ❌
-        """
+        error_message = (
+            f'❌ Erro ao trazer informações do time, '
+            f'certifique-se que você digitou corretamente e sem acento. ❌'
+        )
         bot.send_message(CHAT_ID, error_message)
 
 
@@ -185,24 +185,31 @@ def show_matches_by_round_number(message):
         away_score = match['away_score']
         time_stamp = match['time_stamp']
 
-        the_match_will_happen = home_score ==  {}
+        the_match_will_happen = home_score == {}
         the_match_is_happening_now = 'normaltime' not in home_score
 
         if the_match_will_happen:
-            append_future_match = f"""\n🔸A Jogar:\n{home_team} X {away_team}\
- - \n🗓️ {time_stamp}\n"""
+            append_future_match = (
+                f'\n🔸A Jogar: \n {home_team} X {away_team} -'
+                f'\n🗓️ {time_stamp}\n'
+            )
             string_of_matches_pretify += append_future_match
 
         elif the_match_is_happening_now:
-            match_happening_now = f"""\n🔁 Em andamento:
-{home_team} \
-{home_score['display']} X {away_score['display']} {away_team} \n"""
+            match_happening_now = (
+                f'\n🔁 Em andamento: \n'
+                f'{home_team} '
+                f"{home_score['display']} X {away_score['display']} "
+                f'{away_team} \n'
+            )
             string_of_matches_pretify += match_happening_now
 
         else:
-            ended_match = f"""\n🔹Encerrado:
-{home_team} {home_score['display']} X \
-{away_score['display']} {away_team} - \n🗓️ {time_stamp}\n"""
+            ended_match = (
+                f'\n🔹Encerrado: \n'
+                f"{home_team} {home_score['display']} X "
+                f"{away_score['display']} {away_team} - \n🗓️ {time_stamp}\n"
+            )
             string_of_matches_pretify += ended_match
 
     bot.send_message(
@@ -216,13 +223,16 @@ def show_matches_by_round_number(message):
 def help_command(message):
     """Send the bot User Guide to the user."""
     CHAT_ID = message.chat.id
-    string = """
-Lista de comandos disponiveis: \n
-/ultimos_resultados_BRA : ultimos resultados do brasileirão A.
-/tabela_BRA : tabela do brasileirão A.
-/resumo_time_BRA : Overview e estatisticas de qualquer clube do brasileirão
-/confrontos_por_rodada_BRA : Confrontos que aconteceram ou irão acontecer
-    """
+    string = (
+        f'Lista de comandos disponiveis: \n'
+        f'\n/ultimos_resultados_BRA : ultimos resultados do brasileirão A.\n'
+        f'\n/tabela_BRA : tabela do brasileirão A.\n'
+        f'\n/resumo_time_BRA : Overview e estatisticas de qualquer clube do'
+        f' brasileirão\n'
+        f'\n/confrontos_por_rodada_BRA : Confrontos que aconteceram ou irão'
+        f' acontecer\n'
+        f'\n/jogador_por_tima_BRA : Overall do jogador\n'
+    )
     bot.send_message(CHAT_ID, string)
 
 
@@ -236,13 +246,14 @@ def start_message(message):
     keyboard.row('/tabela_BRA')
     keyboard.row('/resumo_time_BRA')
     keyboard.row('/confrontos_por_rodada_BRA')
-    user_guide_message = """
-    Bem vindo ao Fute Bot ⚽️ ! \n
-Escreva ou aperte um dos botões que aparecem no seu teclado. \
-Caso tenha alguma dificuldade, digite ou aperte "/help" "/ajuda" para ver \
-a lista de comandos disponiveis.
-Os comandos com o sufixo 'BRA' correspondem ao brasileirão série A.
-    """
+    keyboard.row('/jogador_por_tima_BRA')
+    user_guide_message = (
+        f'Bem vindo ao Fute Bot ⚽️ ! \n'
+        f'Escreva ou aperte um dos botões que aparecem no seu teclado. '
+        f"Caso tenha alguma dificuldade, digite ou aperte '/help' '/ajuda' "
+        f'para ver a lista de comandos disponiveis. '
+        f"Os comandos com o sufixo 'BRA' correspondem ao brasileirão série A."
+    )
     bot.send_message(
         message.chat.id, user_guide_message, reply_markup=keyboard
     )

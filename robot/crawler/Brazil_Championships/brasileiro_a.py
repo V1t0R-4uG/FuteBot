@@ -1,10 +1,15 @@
 import json
+from datetime import datetime
 from typing import Dict, List, Union
 from unicodedata import normalize
-from datetime import datetime
 
 import requests
 from bs4 import BeautifulSoup
+
+from .utils.get_player_id_and_slug_by_team import \
+    get_player_id_and_slug_by_team
+from .utils.get_team_id import get_team_id
+from .utils.request_and_parse_json import request_and_parse_to_object
 
 
 def last_results() -> Union[List, bool]:
@@ -25,17 +30,12 @@ def last_results() -> Union[List, bool]:
         return False
 
 
-def request_and_parse_to_object(url: str, protocol: str = 'GET') -> Dict:
-    """Request the url endpoint and return the json parsed to python object."""
-    response = requests.request(protocol, url)
-    response_to_object = json.loads(response.text)
-    return response_to_object
-
-
 def table() -> Union[List, bool]:
     """Return the current table."""
-    url = 'https://api.sofascore.com/api/v1/unique-tournament/325/season\
-/40557/standings/total'
+    url = (
+        f'https://api.sofascore.com/api/v1/unique-tournament/325/season'
+        f'/40557/standings/total'
+    )
     try:
         json_api_sofa = request_and_parse_to_object(url=url, protocol='GET')
         table = json_api_sofa['standings'][0]['rows']
@@ -57,29 +57,13 @@ def table() -> Union[List, bool]:
         return False
 
 
-def get_team_id(team_name: str) -> Union[str, bool]:
-    """get the ID from a specific team"""
-    lower_case_string = team_name.lower().replace(' ', '-')
-    url = 'https://api.sofascore.com/api/v1/unique-tournament/325/season/\
-40557/standings/total'
-    try:
-        json_api_sofa = request_and_parse_to_object(url=url, protocol='GET')
-        team_list = json_api_sofa['standings'][0]['rows']
-        result = [
-            team['team']['id']
-            for team in team_list
-            if team['team']['slug'] == lower_case_string
-        ]
-        return result[0]
-    except:
-        return False
-
-
 def team_statistics(team_name: str) -> Union[Dict, bool]:
     """Return Team Statistics."""
     TEAM_ID = get_team_id(team_name=team_name)
-    url = f'http://api.sofascore.com/api/v1/team/{TEAM_ID}/unique-tournament\
-/325/season/40557/statistics/overall'
+    url = (
+        f'http://api.sofascore.com/api/v1/team/{TEAM_ID}/unique-tournament'
+        f'/325/season/40557/statistics/overall'
+    )
     try:
         json_api_sofa = request_and_parse_to_object(url=url, protocol='GET')
         statistics = json_api_sofa['statistics']
@@ -115,8 +99,10 @@ def team_overview(team_name: str) -> Union[Dict, bool]:
 
 def show_matches_by_round_number(round_number: int) -> List[Dict]:
     """Show matches by round number."""
-    url = f'https://api.sofascore.com/api/v1/unique-tournament/325/season/\
-40557/events/round/{round_number}'
+    url = (
+        f'https://api.sofascore.com/api/v1/unique-tournament/325/season/'
+        f'40557/events/round/{round_number}'
+    )
     json_api_sofa = request_and_parse_to_object(url, 'GET')
     matches_array = json_api_sofa['events']
     filtered_matches_array = []
@@ -127,14 +113,35 @@ def show_matches_by_round_number(round_number: int) -> List[Dict]:
             'home_score': matches['homeScore'],
             'away_score': matches['awayScore'],
             'match_status': matches['status']['code'],
-            'time_stamp': datetime.fromtimestamp(matches['startTimestamp'])
+            'time_stamp': datetime.fromtimestamp(matches['startTimestamp']),
         }
         filtered_matches_array.append(match_stats)
     return filtered_matches_array
 
 
+player = Union[List[Dict], ValueError, bool]
+
+
+def return_player_overview(team_name: str, player_name: str) -> player:
+    try:
+        team_id = get_team_id(team_name)
+        if not team_id:
+            raise ValueError('O time informado não existe')
+        player_information = get_player_id_and_slug_by_team(
+            team_id, player_name
+        )
+        if player_information is None:
+            raise ValueError('O jogador informado não existe!')
+        player_id = player_information['player_id']
+        url = f'https://api.sofascore.app/api/v1/player/{player_id}/'
+        json_api_sofa = request_and_parse_to_object(url, 'GET')
+        return json_api_sofa
+    except ValueError as error:
+        return error
+
+
 def main() -> None:
-    print(show_matches_by_round_number(38))
+    print(return_player_overview('atletico mineiro', 'guilherme arana'))
 
 
 if __name__ == '__main__':

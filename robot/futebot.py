@@ -75,9 +75,7 @@ def show_club_overview(message):
         button1 = telebot.types.InlineKeyboardButton(
             text='ver estatisticas', callback_data=f'{TEAM_NAME}'
         )
-        keyboard_inline = telebot.types.InlineKeyboardMarkup().add(
-            button1 
-        )
+        keyboard_inline = telebot.types.InlineKeyboardMarkup().add(button1)
         bot.send_sticker(CHAT_ID, TEAM_IMAGE)
         bot.send_message(CHAT_ID, team_info, reply_markup=keyboard_inline)
     except:
@@ -221,12 +219,13 @@ def ask_team_and_player_name(message):
     """Ask the user what team and player him want to see."""
     CHAT_ID = message.chat.id
     message = (
-        f'Digite sem acentos o nome do time e o nome do jogador separados '\
+        f'Digite sem acentos o nome do time e o nome do jogador separados '
         f'por virgula. Exemplo: \n'
         f'atletico mineiro, guilherme arana'
     )
     team_name = bot.send_message(CHAT_ID, message)
     bot.register_next_step_handler(team_name, player_overview)
+
 
 def player_overview(message):
     CHAT_ID = message.chat.id
@@ -234,12 +233,12 @@ def player_overview(message):
     team_name = split_message[0]
     player_name = split_message[1].lstrip()
     overview = brasileiro_a.return_player_overview(team_name, player_name)
+    if type(overview) == ValueError:
+        bot.send_message(CHAT_ID, 'O jogador informado não foi encontrado!')
+        return
     player_id = overview['player']['id']
     player_image = brasileiro_a.return_player_photo(player_id)
-    preferred_foot = {
-        'Left': 'Esquerdo',
-        'Right': 'Direito'
-    }
+    preferred_foot = {'Left': 'Esquerdo', 'Right': 'Direito'}
     contract_time = datetime.datetime.fromtimestamp(
         overview['player']['contractUntilTimestamp']
     )
@@ -249,22 +248,23 @@ def player_overview(message):
         f"⚽ Nome: {overview['player']['name']}\n"
         f"👕 Número da camisa: {overview['player']['jerseyNumber']}\n"
         f"🙋 Altura: {overview['player']['height']}\n"
-        f"👟 Pé de preferencia: {preferred_foot}\n"
+        f'👟 Pé de preferencia: {preferred_foot}\n'
         f"🏳️País de origem: {overview['player']['country']['name']}\n"
-        f"📆 Fim do contrato: "\
-        f"{contract_time}\n"
-        f"💰 Valor de mercado: EUR {market_value}\n",
-        f'estatisticas, {player_name}, {team_name}'
+        f'📆 Fim do contrato: '
+        f'{contract_time}\n'
+        f'💰 Valor de mercado: EUR {market_value}\n',
+        f'estatisticas, {player_name}, {team_name}',
     )
     button1 = telebot.types.InlineKeyboardButton(
-        text='ver estatisticas completas', callback_data=message_with_player_atributes[1]
+        text='ver estatisticas completas',
+        callback_data=message_with_player_atributes[1],
     )
-    keyboard_inline = telebot.types.InlineKeyboardMarkup().add(
-        button1
-    )
+    keyboard_inline = telebot.types.InlineKeyboardMarkup().add(button1)
     bot.send_sticker(CHAT_ID, player_image)
-    bot.send_message(CHAT_ID, message_with_player_atributes[0], 
-                     reply_markup=keyboard_inline)
+    bot.send_message(
+        CHAT_ID, message_with_player_atributes[0], reply_markup=keyboard_inline
+    )
+
 
 @bot.callback_query_handler(func=lambda call: 'estatisticas' in call.data)
 def show_player_statistics_or_exit(call):
@@ -273,11 +273,65 @@ def show_player_statistics_or_exit(call):
     team_name = response_callback[2].lstrip()
     player_name = response_callback[1].lstrip()
     overall = brasileiro_a.return_player_overall(team_name, player_name)
-    bot.answer_callback_query(callback_query_id=call.id, text='Carregando estatisticas')
-    bot.edit_message_reply_markup(call.message.chat.id, call.message.message_id)
-    sleep(1.5)
-    print(overall)
-
+    statistics = overall['statistics']
+    overall_message = (
+        f"Gols: {statistics['goals']}\n"
+        f"Grandes chances criadas: {statistics['bigChancesCreated']}\n"
+        f"Grandes chances desperdiçadas: {statistics['bigChancesMissed']}\n"
+        f"Passes precisos: {statistics['accuratePasses']}\n"
+        f"Passes imprecisos: {statistics['inaccuratePasses']}\n"
+        f"Total de passes: {statistics['totalPasses']}\n"
+        f"Passes chaves: {statistics['keyPasses']}\n"
+        f"Dribles bem sucedidos: {statistics['successfulDribbles']}\n"
+        f"Cortes: {statistics['tackles']}\n"
+        f"Intercepções: {statistics['interceptions']}\n"
+        f"Cartões amarelos: {statistics['yellowCards']}\n"
+        f"Cartões vermelhos: {statistics['redCards']}\n"
+        f"Cruzamentos precisos: {statistics['accurateCrosses']}\n"
+        f"Total de chutes: {statistics['totalShots']}\n"
+        f"Chutes no alvo: {statistics['shotsOnTarget']}\n"
+        f"Chutes fora do alvo: {statistics['shotsOffTarget']}\n"
+        f"Duelos ganhos no chão: {statistics['groundDuelsWon']}\n"
+        f"Duelos aereos ganhos: {statistics['aerialDuelsWon']}\n"
+        f"Total de duelos ganhos: {statistics['totalDuelsWon']}\n"
+        f"Minutos jogados: {statistics['minutesPlayed']}\n"
+        f"Penalidades sofridas: {statistics['penaltiesTaken']}\n"
+        f"Gols de penalti: {statistics['penaltyGoals']}\n"
+        f"Penaltis concedidos: {statistics['penaltyConceded']}\n"
+        f"Gols de falta: {statistics['freeKickGoal']}\n"
+        f"Gols na pequena área: {statistics['goalsFromInsideTheBox']}\n"
+        f"Gols de fora da pequena área: {statistics['goalsFromOutsideTheBox']}\n"
+        f"Chutes de dentro da pequena área: {statistics['shotsFromInsideTheBox']}\n"
+        f"Chutes de fora da pequena área: {statistics['shotsFromOutsideTheBox']}\n"
+        f"Gols de cabeça: {statistics['headedGoals']}\n"
+        f"Gols de pé esquerdo: {statistics['leftFootGoals']}\n"
+        f"Gols de pé direito: {statistics['rightFootGoals']}\n"
+        f"Bolas longas precisas: {statistics['accurateLongBalls']}\n"
+        f"Perda de posse: {statistics['possessionLost']}\n"
+        f"Toques na bola: {statistics['touches']}\n"
+        f"Derrubado: {statistics['wasFouled']}\n"
+        f"Faltas: {statistics['fouls']}\n"
+        f"Gols contra: {statistics['ownGoals']}\n"
+        f"Impedimento: {statistics['offsides']}\n"
+        f"Chutes bloqueados: {statistics['blockedShots']}\n"
+        f"Passes para assistencia: {statistics['passToAssist']}\n"
+        f"Penaltis convertidos: {statistics['penaltyConversion']}\n"
+        f"Total de tentativas de assistencia: {statistics['totalAttemptAssist']}\n"
+        f"Total de disputas: {statistics['totalContest']}\n"
+        f"Total de cruzamentos: {statistics['totalCross']}\n"
+        f"Duelos perdidos: {statistics['duelLost']}\n"
+        f"Perdas áereas: {statistics['aerialLost']}\n"
+        f"Tentativas de penalti perdidas: {statistics['attemptPenaltyMiss']}\n"
+        # f"Assistencias: {statistics['assists']}\n"
+    )
+    bot.answer_callback_query(
+        callback_query_id=call.id, text='Carregando estatisticas'
+    )
+    bot.edit_message_reply_markup(
+        call.message.chat.id, call.message.message_id
+    )
+    sleep(0.7)
+    bot.send_message(call.message.chat.id, overall_message)
 
 
 @bot.message_handler(commands=['help', 'ajuda'])

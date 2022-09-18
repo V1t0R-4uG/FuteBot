@@ -119,10 +119,11 @@ def show_matches_by_round_number(round_number: int) -> List[Dict]:
     return filtered_matches_array
 
 
-player = Union[List[Dict], ValueError, bool]
+player = Union[Dict, ValueError]
 
 
 def return_player_overview(team_name: str, player_name: str) -> player:
+    """Return a Dict that contains the player overview"""
     try:
         team_id = get_team_id(team_name)
         if not team_id:
@@ -140,8 +141,39 @@ def return_player_overview(team_name: str, player_name: str) -> player:
         return error
 
 
+def return_player_overall(team_name: str, player_name: str) -> player:
+    """Returns a Dict that contains the player overall."""
+    try:
+        team_id = get_team_id(team_name)
+        if not team_id:
+            raise ValueError('O time informado não existe')
+        player_info = get_player_id_and_slug_by_team(team_id, player_name)
+        if player_info is None:
+            raise ValueError('O jogador informado não existe')
+        player_id = player_info['player_id']
+        url = (
+            f'http://api.sofascore.com/api/v1/player/{player_id}'\
+            f'/unique-tournament/325/season/40557/statistics/overall'
+        )
+        json_api_sofa = request_and_parse_to_object(url, 'GET')
+        return json_api_sofa
+    except ValueError as error:
+         return error
+
+def return_player_photo(player_id: int) -> (str | ValueError):
+    try:
+        if type(player_id) != int:
+            raise ValueError('O id passado é invalido')
+        player_image = (
+            f'https://api.sofascore.app/api/v1/player/{player_id}/image'
+        )
+        return player_image
+    except ValueError as error:
+        return error
+
+
 def main() -> None:
-    print(return_player_overview('atletico mineiro', 'guilherme arana'))
+    print(return_player_overall('atletico mineiro', 'guilherme arana'))
 
 
 if __name__ == '__main__':

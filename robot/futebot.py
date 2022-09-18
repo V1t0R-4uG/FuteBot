@@ -13,7 +13,7 @@ BOT_TOKEN = os.getenv('BOT_API')
 bot = telebot.TeleBot(str(BOT_TOKEN))
 
 
-@bot.message_handler(commands=['ultimos_resultados_BRA'])
+@bot.message_handler(commands=['ultimos_resultados_bra'])
 def show_last_matches_results_BRA(message):
     """Shows the last matches results of brasileirão divison A."""
     CHAT_ID = message.chat.id
@@ -24,7 +24,7 @@ def show_last_matches_results_BRA(message):
     bot.send_message(CHAT_ID, string_matches_results)
 
 
-@bot.message_handler(commands=['tabela_BRA'])
+@bot.message_handler(commands=['tabela_bra'])
 def show_table_BRA(message):
     """show table of brasileirão divison A"""
     CHAT_ID = message.chat.id
@@ -45,7 +45,7 @@ def show_table_BRA(message):
     bot.send_message(CHAT_ID, string_table)
 
 
-@bot.message_handler(commands=['resumo_time_BRA'])
+@bot.message_handler(commands=['resumo_time_bra'])
 def ask_team_name(message):
     """Ask the user what team him want to see."""
     CHAT_ID = message.chat.id
@@ -75,11 +75,8 @@ def show_club_overview(message):
         button1 = telebot.types.InlineKeyboardButton(
             text='ver estatisticas', callback_data=f'{TEAM_NAME}'
         )
-        button2 = telebot.types.InlineKeyboardButton(
-            text='sair', callback_data='sair'
-        )
         keyboard_inline = telebot.types.InlineKeyboardMarkup().add(
-            button1, button2
+            button1 
         )
         bot.send_sticker(CHAT_ID, TEAM_IMAGE)
         bot.send_message(CHAT_ID, team_info, reply_markup=keyboard_inline)
@@ -91,7 +88,7 @@ def show_club_overview(message):
         bot.send_message(CHAT_ID, error_message)
 
 
-@bot.callback_query_handler(func=lambda call: True)
+@bot.callback_query_handler(func=lambda call: call.data == 'ver estatisticas')
 def show_statistics_or_exit(call):
     """Show user the team statistics if he wants to."""
     user_answer = call.data
@@ -159,7 +156,7 @@ Cartões vermelhos: {statistics['redCards']}
         return
 
 
-@bot.message_handler(commands=['confrontos_por_rodada_BRA'])
+@bot.message_handler(commands=['confrontos_por_rodada_bra'])
 def ask_user_the_round_number(message):
     CHAT_ID = message.chat.id
     message = """🤖 Digite o número da rodada que você deseja ver."""
@@ -219,19 +216,83 @@ def show_matches_by_round_number(message):
     bot.send_message(CHAT_ID, string_of_matches_pretify)
 
 
+@bot.message_handler(commands=['jogador_por_time_bra'])
+def ask_team_and_player_name(message):
+    """Ask the user what team and player him want to see."""
+    CHAT_ID = message.chat.id
+    message = (
+        f'Digite sem acentos o nome do time e o nome do jogador separados '\
+        f'por virgula. Exemplo: \n'
+        f'atletico mineiro, guilherme arana'
+    )
+    team_name = bot.send_message(CHAT_ID, message)
+    bot.register_next_step_handler(team_name, player_overview)
+
+def player_overview(message):
+    CHAT_ID = message.chat.id
+    split_message = message.text.split(',')
+    team_name = split_message[0]
+    player_name = split_message[1].lstrip()
+    overview = brasileiro_a.return_player_overview(team_name, player_name)
+    player_id = overview['player']['id']
+    player_image = brasileiro_a.return_player_photo(player_id)
+    preferred_foot = {
+        'Left': 'Esquerdo',
+        'Right': 'Direito'
+    }
+    contract_time = datetime.datetime.fromtimestamp(
+        overview['player']['contractUntilTimestamp']
+    )
+    preferred_foot = preferred_foot[overview['player']['preferredFoot']]
+    market_value = overview['player']['proposedMarketValueRaw']['value']
+    message_with_player_atributes = (
+        f"⚽ Nome: {overview['player']['name']}\n"
+        f"👕 Número da camisa: {overview['player']['jerseyNumber']}\n"
+        f"🙋 Altura: {overview['player']['height']}\n"
+        f"👟 Pé de preferencia: {preferred_foot}\n"
+        f"🏳️País de origem: {overview['player']['country']['name']}\n"
+        f"📆 Fim do contrato: "\
+        f"{contract_time}\n"
+        f"💰 Valor de mercado: EUR {market_value}\n",
+        f'estatisticas, {player_name}, {team_name}'
+    )
+    button1 = telebot.types.InlineKeyboardButton(
+        text='ver estatisticas completas', callback_data=message_with_player_atributes[1]
+    )
+    keyboard_inline = telebot.types.InlineKeyboardMarkup().add(
+        button1
+    )
+    bot.send_sticker(CHAT_ID, player_image)
+    bot.send_message(CHAT_ID, message_with_player_atributes[0], 
+                     reply_markup=keyboard_inline)
+
+@bot.callback_query_handler(func=lambda call: 'estatisticas' in call.data)
+def show_player_statistics_or_exit(call):
+    """Show user the player statistics if he wants to."""
+    response_callback = call.data.split(',')
+    team_name = response_callback[2].lstrip()
+    player_name = response_callback[1].lstrip()
+    overall = brasileiro_a.return_player_overall(team_name, player_name)
+    bot.answer_callback_query(callback_query_id=call.id, text='Carregando estatisticas')
+    bot.edit_message_reply_markup(call.message.chat.id, call.message.message_id)
+    sleep(1.5)
+    print(overall)
+
+
+
 @bot.message_handler(commands=['help', 'ajuda'])
 def help_command(message):
     """Send the bot User Guide to the user."""
     CHAT_ID = message.chat.id
     string = (
         f'Lista de comandos disponiveis: \n'
-        f'\n/ultimos_resultados_BRA : ultimos resultados do brasileirão A.\n'
-        f'\n/tabela_BRA : tabela do brasileirão A.\n'
-        f'\n/resumo_time_BRA : Overview e estatisticas de qualquer clube do'
+        f'\n/ultimos_resultados_bra : ultimos resultados do brasileirão A.\n'
+        f'\n/tabela_bra : tabela do brasileirão A.\n'
+        f'\n/resumo_time_bra : Overview e estatisticas de qualquer clube do'
         f' brasileirão\n'
-        f'\n/confrontos_por_rodada_BRA : Confrontos que aconteceram ou irão'
+        f'\n/confrontos_por_rodada_bra : Confrontos que aconteceram ou irão'
         f' acontecer\n'
-        f'\n/jogador_por_tima_BRA : Overall do jogador\n'
+        f'\n/jogador_por_time_bra : Overall do jogador\n'
     )
     bot.send_message(CHAT_ID, string)
 
@@ -242,11 +303,11 @@ def start_message(message):
     keyboard = telebot.types.ReplyKeyboardMarkup(
         resize_keyboard=True, one_time_keyboard=True
     )
-    keyboard.row('/ultimos_resultados_BRA')
-    keyboard.row('/tabela_BRA')
-    keyboard.row('/resumo_time_BRA')
-    keyboard.row('/confrontos_por_rodada_BRA')
-    keyboard.row('/jogador_por_tima_BRA')
+    keyboard.row('/ultimos_resultados_bra')
+    keyboard.row('/tabela_bra')
+    keyboard.row('/resumo_time_bra')
+    keyboard.row('/confrontos_por_rodada_bra')
+    keyboard.row('/jogador_por_tima_bra')
     user_guide_message = (
         f'Bem vindo ao Fute Bot ⚽️ ! \n'
         f'Escreva ou aperte um dos botões que aparecem no seu teclado. '

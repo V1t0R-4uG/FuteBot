@@ -53,7 +53,6 @@ def ask_team_name(message):
     team_name = bot.send_message(CHAT_ID, message)
     bot.register_next_step_handler(team_name, show_club_overview)
 
-
 def show_club_overview(message):
     """Show the team overview that the user request and ask if the user
     want to see more information."""
@@ -72,86 +71,18 @@ def show_club_overview(message):
             f"🟨 Cartões Amarelos: {TEAM_OVERVIEW['yellowCards']}\n"
             f"🟥 Cartões Vermelhos: {TEAM_OVERVIEW['redCards']}\n"
         )
-        button1 = telebot.types.InlineKeyboardButton(
-            text='ver estatisticas', callback_data=f'{TEAM_NAME}'
-        )
-        keyboard_inline = telebot.types.InlineKeyboardMarkup().add(button1)
+        #button1 = telebot.types.InlineKeyboardButton(
+        #    text='ver estatisticas', callback_data=f'ver estatisticas:{TEAM_NAME}'
+        #)
+        #keyboard_inline = telebot.types.InlineKeyboardMarkup().add(button1)
         bot.send_sticker(CHAT_ID, TEAM_IMAGE)
-        bot.send_message(CHAT_ID, team_info, reply_markup=keyboard_inline)
+        bot.send_message(CHAT_ID, team_info)
     except:
         error_message = (
             f'❌ Erro ao trazer informações do time, '
             f'certifique-se que você digitou corretamente e sem acento. ❌'
         )
         bot.send_message(CHAT_ID, error_message)
-
-
-@bot.callback_query_handler(func=lambda call: call.data == 'ver estatisticas')
-def show_statistics_or_exit(call):
-    """Show user the team statistics if he wants to."""
-    user_answer = call.data
-    if user_answer != 'sair':
-        reply_message = 'Carregando estatisticas'
-        bot.answer_callback_query(
-            callback_query_id=call.id, text=reply_message
-        )
-        bot.edit_message_reply_markup(
-            call.message.chat.id, call.message.message_id
-        )
-        statistics = brasileiro_a.team_statistics(user_answer)
-        statistics_string = f"""
-Numero de partidas jogadas: {statistics['matches']}
-Gols Marcados: {statistics['goalsScored']}
-Gols Sofridos: {statistics['goalsConceded']}
-Chutes: {statistics['shots']}
-Gols de Penalti: {statistics['penaltyGoals']}
-Gols de Falta: {statistics['freeKickGoals']}
-Chutes de Falta: {statistics['freeKickShots']}
-Gols dentro da área: {statistics['goalsFromInsideTheBox']}
-Gols de fora da área: {statistics['goalsFromOutsideTheBox']}
-Chutes dentro da área: {statistics['shotsFromInsideTheBox']}
-Chutes de fora da área: {statistics['shotsFromOutsideTheBox']}
-Gols de cabeça: {statistics['headedGoals']}
-Gols com a perna esquerda: {statistics['leftFootGoals']}
-Gols com a perna direita: {statistics['rightFootGoals']}
-Grandes chances criadas: {statistics['bigChancesCreated']}
-Grandes chances perdidas: {statistics['bigChancesMissed']}
-Chutes no gol: {statistics['shotsOnTarget']}
-Chutes fora do gol: {statistics['shotsOffTarget']}
-Chutes na trave: {statistics['hitWoodwork']}
-Dribles bem sucedidos: {statistics['successfulDribbles']}
-Tentativas de dribles: {statistics['dribbleAttempts']}
-Escanteios: {statistics['corners']}
-Média de posse de bola: {statistics['averageBallPossession']:.2f}%
-Total de passes: {statistics['totalPasses']}
-Passes precisos: {statistics['accuratePasses']}
-passes precisos: {statistics['accuratePassesPercentage']:.2f}%
-Total de bolas longas: {statistics['totalLongBalls']}
-Bolas longas precisas: {statistics['accurateLongBalls']}
-Bolas longas precisas: {statistics['accurateLongBallsPercentage']:.2f}%
-Total de cruzamentos: {statistics['totalCrosses']}
-Cruzamentos precisos: {statistics['accurateCrosses']}
-cruzamentos precisos: {statistics['accurateCrossesPercentage']:.2f}%
-Jogos sem sofrer gols: {statistics['cleanSheets']}
-Total de desarmes: {statistics['tackles']}
-Intercepções: {statistics['interceptions']}
-Total de duelos: {statistics['totalDuels']}
-Total de duelos ganhos: {statistics['duelsWon']}
-Total de duelos áereos: {statistics['totalAerialDuels']}
-Faltas: {statistics['fouls']}
-Cartões amarelos: {statistics['yellowCards']}
-Cartões vermelhos: {statistics['redCards']}
-"""
-        bot.send_message(call.message.chat.id, text=statistics_string)
-    else:
-        reply_message = 'ok, saindo...'
-        bot.answer_callback_query(
-            callback_query_id=call.id, text=reply_message
-        )
-        bot.edit_message_reply_markup(
-            call.message.chat.id, call.message.message_id
-        )
-        return
 
 
 @bot.message_handler(commands=['confrontos_por_rodada_bra'])

@@ -7,7 +7,7 @@ def request_and_parse_to_object(url: str, protocol: str = 'GET') -> Dict:
     """Request the url endpoint and return the json parsed to python object."""
     bot_session = requests.Session()
     USER_AGENT = {
-        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.5112.126 Safari/537.36",
+        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.5112.126 Safari/537.36"
     }
     bot_session.headers.update(USER_AGENT)
     response = bot_session.get(url, timeout=5)

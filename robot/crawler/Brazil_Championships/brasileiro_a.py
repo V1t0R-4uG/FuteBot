@@ -7,29 +7,11 @@ from unicodedata import normalize
 import requests
 from bs4 import BeautifulSoup
 
-from utils.get_player_id_and_slug_by_team import \
+from .utils.get_player_id_and_slug_by_team import \
     get_player_id_and_slug_by_team
-from utils.get_team_id import get_team_id
-from utils.request_and_parse_json import request_and_parse_to_object
+from .utils.get_team_id import get_team_id
+from .utils.request_and_parse_json import request_and_parse_to_object
 
-
-def last_results() -> Union[List, Dict]:
-    """Scrape the last matches results and return it in an array."""
-    URL = 'https://www.soccerstats.com/latest.asp?league=brazil'
-    try:
-        page = requests.get(URL)
-        page_content = page.text
-        parsed_content = BeautifulSoup(page_content, 'html.parser')
-        match_html_tag = parsed_content.find_all(
-            'div', style='text-align:center;'
-        )
-        last_matches_results = []
-        for matches in match_html_tag:
-            last_matches_results.append(normalize('NFKD', matches.text))
-        return last_matches_results
-    except:
-        return {'message': 'Erro ao tentar encontrar ultimos resultados',
-                'value': False}
 
 @dataclass(frozen=True)
 class Team:
@@ -66,7 +48,7 @@ def table() -> Dict:
             team_array.append(team_stats)
         return {'message': 'success', 'value': team_array}
     except:
-        return {'message': 'Erro ao tentar trazer tabela', 'value': False}
+        return {'message': 'error'}
 
 
 def team_full_statistics(team_name: str) -> Dict:
@@ -200,8 +182,9 @@ def return_player_photo(player_id: int) -> Union[str, Dict]:
 
 
 def main() -> None:
-    team_overview('atletico mineiro')
-    #table()
+    #team_overview('atletico mineiro')
+    teste = table()
+    print(teste['value'][0].name)
     #print(return_player_overall('atletico mineiro', 'guilherme arana'))
 
 

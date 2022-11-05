@@ -13,36 +13,27 @@ BOT_TOKEN = os.getenv('BOT_API')
 bot = telebot.TeleBot(str(BOT_TOKEN))
 
 
-@bot.message_handler(commands=['ultimos_resultados_bra'])
-def show_last_matches_results_BRA(message):
-    """Shows the last matches results of brasileirão divison A."""
-    CHAT_ID = message.chat.id
-    array_matches_results = brasileiro_a.last_results()
-    string_matches_results = ''
-    for results in array_matches_results:
-        string_matches_results += results
-    bot.send_message(CHAT_ID, string_matches_results)
-
-
 @bot.message_handler(commands=['tabela_bra'])
 def show_table_BRA(message):
     """show table of brasileirão divison A"""
     CHAT_ID = message.chat.id
-    table_array = brasileiro_a.table()
-    string_table = """"""
-    for team in table_array:
-        name = team['team_name']
-        position = team['team_position']
-        wins = team['team_wins']
-        loss = team['team_losses']
-        draws = team['team_draws']
-        points = team['team_points']
-        to_append = (
-            f'\n{position}° {name} \n P: {points} '
-            f' V: {wins}  E: {draws}  D: {loss} \n'
-        )
-        string_table += to_append
-    bot.send_message(CHAT_ID, string_table)
+    raw_table_info = brasileiro_a.table()
+    if raw_table_info['message'] == 'error':
+        bot.send_message(CHAT_ID, 'Erro ao trazer a tabela.')
+        return
+    teams = raw_table_info['value']
+    string = str()
+    for team in teams:
+        if int(team.position) > 16:
+            s = (
+                f'\n🅱 {team.position}° {team.name} - P: {team.points}\n'
+            )
+        else:
+            s = (
+                f'\n{team.position}° {team.name}  -  P: {team.points}\n'
+            )
+        string = string + s
+    bot.send_message(CHAT_ID, string)
 
 
 @bot.message_handler(commands=['resumo_time_bra'])
